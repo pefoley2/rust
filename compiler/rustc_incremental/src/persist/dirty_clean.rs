@@ -30,7 +30,6 @@ use rustc_middle::dep_graph::{DepNode, DepNodeExt, label_strs};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{Span, Symbol, sym};
-use thin_vec::ThinVec;
 use tracing::debug;
 
 use crate::errors;
@@ -207,7 +206,7 @@ impl<'tcx> DirtyCleanVisitor<'tcx> {
 
     /// `loaded_from_disk=` attribute value
     fn loaded_from_disk(&self, attr: &Attribute) -> Labels {
-        for item in attr.meta_item_list().unwrap_or_else(ThinVec::new) {
+        for item in attr.meta_item_list().unwrap_or_default() {
             if item.has_name(LOADED_FROM_DISK) {
                 let value = expect_associated_value(self.tcx, &item);
                 return self.resolve_labels(&item, value);
@@ -219,7 +218,7 @@ impl<'tcx> DirtyCleanVisitor<'tcx> {
 
     /// `except=` attribute value
     fn except(&self, attr: &Attribute) -> Labels {
-        for item in attr.meta_item_list().unwrap_or_else(ThinVec::new) {
+        for item in attr.meta_item_list().unwrap_or_default() {
             if item.has_name(EXCEPT) {
                 let value = expect_associated_value(self.tcx, &item);
                 return self.resolve_labels(&item, value);
@@ -399,7 +398,7 @@ fn check_config(tcx: TyCtxt<'_>, attr: &Attribute) -> bool {
     let config = &tcx.sess.psess.config;
     debug!("check_config: config={:?}", config);
     let mut cfg = None;
-    for item in attr.meta_item_list().unwrap_or_else(ThinVec::new) {
+    for item in attr.meta_item_list().unwrap_or_default() {
         if item.has_name(CFG) {
             let value = expect_associated_value(tcx, &item);
             debug!("check_config: searching for cfg {:?}", value);

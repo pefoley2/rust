@@ -246,7 +246,7 @@ fn dump_graph(query: &DepGraphQuery) {
         let txt_path = format!("{path}.txt");
         let mut file = File::create_buffered(&txt_path).unwrap();
         for (source, target) in &edges {
-            write!(file, "{source:?} -> {target:?}\n").unwrap();
+            writeln!(file, "{source:?} -> {target:?}").unwrap();
         }
     }
 

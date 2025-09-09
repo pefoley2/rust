@@ -187,9 +187,7 @@ fn load_dep_graph(
 /// Otherwise, tries to load the query result cache from disk,
 /// creating an empty cache if it could not be loaded.
 pub fn load_query_result_cache(sess: &Session) -> Option<OnDiskCache> {
-    if sess.opts.incremental.is_none() {
-        return None;
-    }
+    sess.opts.incremental.as_ref()?;
 
     let _prof_timer = sess.prof.generic_activity("incr_comp_load_query_result_cache");
 

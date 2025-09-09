@@ -147,10 +147,7 @@ pub(crate) fn build_dep_graph(
     prev_graph: Arc<SerializedDepGraph>,
     prev_work_products: WorkProductMap,
 ) -> Option<DepGraph> {
-    if sess.opts.incremental.is_none() {
-        // No incremental compilation.
-        return None;
-    }
+    sess.opts.incremental.as_ref()?;
 
     // Stream the dep-graph to an alternate file, to avoid overwriting anything in case of errors.
     let path_buf = staging_dep_graph_path(sess);

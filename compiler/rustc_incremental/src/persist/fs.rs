@@ -328,7 +328,7 @@ pub fn finalize_session_directory(sess: &Session, svh: Option<Svh>) {
             sess.dcx().emit_warn(errors::DeleteFull { path: &incr_comp_session_dir, err });
         }
 
-        let lock_file_path = lock_file_path(&*incr_comp_session_dir);
+        let lock_file_path = lock_file_path(&incr_comp_session_dir);
         delete_session_dir_lock_file(sess, &lock_file_path);
         sess.mark_incr_comp_session_as_invalid();
     }
@@ -355,7 +355,7 @@ pub fn finalize_session_directory(sess: &Session, svh: Option<Svh>) {
     let new_path = incr_comp_session_dir.parent().unwrap().join(&*sub_dir_name);
     debug!("finalize_session_directory() - new path: {}", new_path.display());
 
-    match rename_path_with_retry(&*incr_comp_session_dir, &new_path, 3) {
+    match rename_path_with_retry(&incr_comp_session_dir, &new_path, 3) {
         Ok(_) => {
             debug!("finalize_session_directory() - directory renamed successfully");
 
@@ -531,14 +531,14 @@ where
         };
 
         if source_directories_already_tried.contains(&session_dir)
-            || !is_session_directory(&directory_name)
-            || !is_finalized(&directory_name)
+            || !is_session_directory(directory_name)
+            || !is_finalized(directory_name)
         {
             debug!("find_source_directory_in_iter - ignoring");
             continue;
         }
 
-        let timestamp = match extract_timestamp_from_session_dir(&directory_name) {
+        let timestamp = match extract_timestamp_from_session_dir(directory_name) {
             Ok(timestamp) => timestamp,
             Err(e) => {
                 debug!("unexpected incr-comp session dir: {}: {}", session_dir.display(), e);
@@ -647,9 +647,9 @@ pub(crate) fn garbage_collect_session_directories(sess: &Session) -> io::Result<
             continue;
         };
 
-        if is_session_directory_lock_file(&entry_name) {
+        if is_session_directory_lock_file(entry_name) {
             lock_files.insert(entry_name.to_string());
-        } else if is_session_directory(&entry_name) {
+        } else if is_session_directory(entry_name) {
             session_directories.insert(entry_name.to_string());
         } else {
             // This is something we don't know, leave it alone
@@ -667,7 +667,7 @@ pub(crate) fn garbage_collect_session_directories(sess: &Session) -> io::Result<
                 let dir_prefix = &lock_file_name[0..dir_prefix_end];
                 session_directories.iter().find(|dir_name| dir_name.starts_with(dir_prefix))
             };
-            (lock_file_name, session_dir.map(String::clone))
+            (lock_file_name, session_dir.cloned())
         })
         .into();
 
@@ -680,13 +680,13 @@ pub(crate) fn garbage_collect_session_directories(sess: &Session) -> io::Result<
             let Ok(timestamp) = extract_timestamp_from_session_dir(lock_file_name) else {
                 debug!(
                     "found lock-file with malformed timestamp: {}",
-                    crate_directory.join(&lock_file_name).display()
+                    crate_directory.join(lock_file_name).display()
                 );
                 // Ignore it
                 continue;
             };
 
-            let lock_file_path = crate_directory.join(&*lock_file_name);
+            let lock_file_path = crate_directory.join(lock_file_name);
 
             if is_old_enough_to_be_collected(timestamp) {
                 debug!(
